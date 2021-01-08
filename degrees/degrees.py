@@ -161,30 +161,54 @@ def main():
 #                     return actions
 
 def shortest_path(source, target):
+    # store the number of explored states in a variable called num_explored
     num_explored = 0
+    # set the starting node: state is the source (passed as a person_id), parent is none (first node), action is none (first node)
     start = Node(state=source, parent=None, action=None)
+    # initialize a new frontier in a variable called forntier
     frontier = StackFrontier()
+    # add the starting node to the frontier
     frontier.add(start)
+    # initialize a new set to store the explored nodes in
     explored = set()
 
+    # initialize a loop to fire until success
     while True:
+        """ 1. If the frontier is empty, there is no solution, return none """
         if frontier.empty():
             return None
 
+        """ 2. Remove a node from the frontier to explore, store it in the node variable """
         node = frontier.remove()
+
+        """ 3. Add current node to the explored set """
         explored.add(node)
 
+        # for each person that is neighboring the current person_id (node.state), pull the movie_id and person_id
         for movie_id, person_id in neighbors_for_person(node.state):
+            # if the person_id is not a state in either the frontier or the explored set
             if (not frontier.contains_state(person_id) and person_id not in explored):
+                """ 4. If the node is a goal state, return the solution """
+                # if the person_id matches the target passed in
                 if person_id == target:
-                    n = Node(state=person_id, parent=node, action=movie_id)
+                    # create a new node for the target node
+                    target_node = Node(
+                        state=person_id, parent=node, action=movie_id)
+                    # initialize an actions list to store the actions taken to get to the target
                     actions = []
 
-                    while (n.parent is not None):
-                        actions.append((n.action, n.state))
-                        n = n.parent
+                    # initialize while loop to begin backtracking the actions
+                    while (target_node.parent is not None):
+                        # add the action and state (connected movie_id, person_id) to the actions list
+                        actions.append((target_node.action, target_node.state))
+                        # set the new target node to the parent, and restart
+                        target_node = target_node.parent
+                    # reverse the actions list to put it in the correct order
                     actions.reverse()
                     return actions
+                else:
+                    frontier.add(
+                        Node(state=person_id, parent=node, action=movie_id))
 
 
 def person_id_for_name(name):
